@@ -1,6 +1,5 @@
 ---
 title: CU Gait Biometric
-emoji: 🚶
 colorFrom: blue
 colorTo: indigo
 sdk: docker
