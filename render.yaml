@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: cu-gait-biometric
+    env: python
+    region: singapore   # closest to India
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --threads 2
+    envVars:
+      - key: MODEL_PATH
+        value: model/Chandigarh_University_Gait_Biometric_Prototype.keras
+      - key: DB_PATH
+        value: model/CU_gait_database.pkl
+      - key: PYTHON_VERSION
+        value: 3.11.0

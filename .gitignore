@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+uploads/
+*.egg-info/
+dist/
+build/
+.env
+.venv
+venv/
+*.log
+
+# Don't ignore model files — we need them
+# model/*.keras  <- keep
+# model/*.pkl    <- keep

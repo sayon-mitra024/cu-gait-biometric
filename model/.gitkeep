@@ -1,0 +1,4 @@
+# placeholder — model files go here
+# Required files:
+# - Chandigarh_University_Gait_Biometric_Prototype.keras
+# - CU_gait_database.pkl  (copy from Drive, or leave absent to start fresh)

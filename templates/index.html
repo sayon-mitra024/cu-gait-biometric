@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CU Gait Biometric System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cu-red: #E21A22;
+    --cu-red-dark: #b01419;
+    --cu-red-glow: rgba(226, 26, 34, 0.15);
+    --bg: #f4f7f9;
+    --surface: #ffffff;
+    --surface2: #fafbfc;
+    --surface3: #f0f3f6;
+    --border: #e1e4e8;
+    --border-bright: #d1d5da;
+    --text: #24292e;
+    --text-muted: #586069;
+    --green: #2ea043;
+    --green-bg: rgba(46, 160, 67, 0.1);
+    --blue: #0366d6;
+    --blue-bg: rgba(3, 102, 214, 0.1);
+    --amber: #b08800;
+    --amber-bg: rgba(255, 223, 93, 0.2);
+    --red-bg: rgba(226, 26, 34, 0.08);
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-head: 'Rajdhani', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .page-wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 40px 20px 60px; }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: center; gap: 24px;
+    padding: 28px 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--cu-red);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+  }
+  .logo-img {
+    height: 72px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .header-text h1 {
+    font-family: var(--font-head);
+    font-size: 28px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .header-text p {
+    font-family: var(--font-mono);
+    font-size: 13px; color: var(--text-muted);
+    margin-top: 4px; letter-spacing: 0.5px;
+  }
+  .status-pill {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 600;
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(46, 160, 67, 0.4);
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; } 50% { opacity: 0.5; }
+  }
+
+  /* ── DB Status Bar & Dropdown ── */
+  .db-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--text-muted);
+    box-shadow: var(--shadow-sm);
+  }
+  .db-bar span { color: var(--text); font-weight: 600; }
+  #db-count { color: var(--blue); font-size: 15px; font-weight: 700; }
+  
+  .dropdown { position: relative; margin-left: auto; }
+  .dropdown-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  .dropdown-btn:hover { background: var(--surface3); border-color: var(--border-bright); }
+  .dropdown-content {
+    display: none; position: absolute; right: 0; top: calc(100% + 8px);
+    background: var(--surface); border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg); border-radius: 8px;
+    min-width: 220px; z-index: 100; max-height: 250px; overflow-y: auto;
+  }
+  .dropdown-content.show { display: block; animation: fadein 0.2s ease; }
+  .dropdown-item {
+    padding: 10px 16px; font-family: var(--font-body); font-size: 13px;
+    color: var(--text); border-bottom: 1px solid var(--surface3);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dropdown-item::before { content: '👤'; font-size: 12px; opacity: 0.7; }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-empty { padding: 12px; text-align: center; color: var(--text-muted); font-size: 12px; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex; gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .tab-btn {
+    flex: 1; padding: 14px;
+    background: transparent; border: none; border-radius: 8px;
+    color: var(--text-muted);
+    font-family: var(--font-head); font-size: 16px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--surface2); }
+  .tab-btn.active {
+    background: var(--cu-red); color: #fff;
+    box-shadow: 0 4px 12px var(--cu-red-glow);
+  }
+
+  /* ── Panel ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 40px;
+    box-shadow: var(--shadow-md);
+    display: none;
+  }
+  .panel.active { display: block; animation: fadein 0.3s ease; }
+  @keyframes fadein { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+  .panel-title {
+    font-family: var(--font-head);
+    font-size: 22px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text); margin-bottom: 28px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .panel-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Form fields ── */
+  .field { margin-bottom: 24px; }
+  label {
+    display: block; margin-bottom: 10px;
+    font-family: var(--font-body); font-size: 12px; font-weight: 600;
+    color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  input[type="text"] {
+    width: 100%; padding: 14px 16px;
+    background: var(--surface); border: 1px solid var(--border-bright);
+    border-radius: 8px; color: var(--text);
+    font-family: var(--font-body); font-size: 15px;
+    transition: all 0.2s; outline: none;
+  }
+  input[type="text"]:focus {
+    border-color: var(--cu-red);
+    box-shadow: 0 0 0 4px var(--red-bg);
+  }
+  input[type="text"]::placeholder { color: var(--border-bright); }
+
+  /* ── Drop Zone ── */
+  .drop-zone {
+    border: 2px dashed var(--border-bright);
+    border-radius: 10px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer; transition: all 0.25s;
+    background: var(--surface2);
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--cu-red);
+    background: var(--red-bg);
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-icon { font-size: 40px; margin-bottom: 12px; line-height: 1; }
+  .drop-text {
+    font-family: var(--font-body); font-size: 14px; color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .drop-text strong { color: var(--text); font-weight: 600; }
+  .drop-accepted {
+    margin-top: 12px; font-family: var(--font-mono);
+    font-size: 11px; color: var(--blue); font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .file-selected {
+    margin-top: 12px; padding: 12px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; font-family: var(--font-mono); font-size: 13px;
+    color: var(--text); display: none; text-align: left;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Buttons ── */
+  .btn-row { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
+  .btn {
+    flex: 1; min-width: 140px; padding: 16px;
+    border: none; border-radius: 8px;
+    font-family: var(--font-head); font-size: 17px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary {
+    background: var(--cu-red); color: #fff;
+    box-shadow: 0 4px 14px var(--cu-red-glow);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--cu-red-dark);
+    box-shadow: 0 6px 20px rgba(226, 26, 34, 0.25);
+    transform: translateY(-2px);
+  }
+  .btn-secondary {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border-bright);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    border-color: var(--text-muted); background: var(--surface2);
+    transform: translateY(-2px);
+  }
+  .btn-save {
+    background: var(--surface); color: var(--amber);
+    border: 1px solid var(--amber); width: 100%; margin-top: 16px;
+    flex: unset; font-size: 15px; box-shadow: var(--shadow-sm);
+  }
+  .btn-save:hover:not(:disabled) {
+    background: var(--amber-bg); transform: translateY(-1px);
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none; }
+
+  /* ── Progress ── */
+  .progress-wrap { display: none; margin-top: 24px; }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);
+    margin-bottom: 10px; font-weight: 600;
+  }
+  .progress-track {
+    height: 8px; background: var(--surface3);
+    border-radius: 4px; overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: var(--cu-red);
+    border-radius: 4px; transition: width 0.2s ease;
+  }
+  .progress-steps {
+    display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;
+  }
+  .step-chip {
+    padding: 6px 12px; border-radius: 6px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    background: var(--surface2); color: var(--text-muted);
+    border: 1px solid var(--border); transition: all 0.3s;
+  }
+  .step-chip.active {
+    background: var(--surface); color: var(--cu-red);
+    border-color: var(--cu-red); box-shadow: 0 2px 8px var(--cu-red-glow);
+  }
+  .step-chip.done { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+
+  /* ── Output Box ── */
+  .output-box {
+    margin-top: 28px; padding: 20px 24px;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface2);
+    font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    color: var(--text-muted); text-align: center;
+    min-height: 60px; line-height: 1.6;
+    transition: all 0.3s;
+    box-shadow: var(--shadow-sm);
+  }
+  .output-box.success {
+    background: var(--green-bg); border-color: var(--green); color: #1e7e34;
+  }
+  .output-box.error {
+    background: var(--red-bg); border-color: var(--cu-red); color: var(--cu-red-dark);
+  }
+  .output-box.loading {
+    background: var(--blue-bg); border-color: var(--blue); color: #0056b3;
+  }
+  .output-box.warning {
+    background: var(--amber-bg); border-color: var(--amber); color: #856404;
+  }
+  .match-name {
+    display: block; font-family: var(--font-head);
+    font-size: 38px; font-weight: 700; letter-spacing: 2px;
+    color: var(--green); margin: 12px 0;
+  }
+  .conf-bar-wrap { margin-top: 16px; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid rgba(46, 160, 67, 0.2); }
+  .conf-bar-track {
+    height: 10px; background: var(--surface3); border-radius: 5px;
+    overflow: hidden; margin-top: 8px;
+  }
+  .conf-bar-fill {
+    height: 100%; border-radius: 5px;
+    background: var(--green);
+    transition: width 1s ease;
+  }
+  .conf-label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; font-weight: 600; color: var(--text); margin-top: 4px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center; margin-top: 48px;
+    font-family: var(--font-body); font-size: 12px; font-weight: 500;
+    color: var(--text-muted); letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <div class="header">
+    <img src="../templates/cu_logo.jpg" alt="Chandigarh University Logo" class="logo-img" />
+    <div class="header-text">
+      <h1>Chandigarh University</h1>
+      <p>[ GAIT BIOMETRIC AUTHENTICATION SYSTEM ]</p>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      <span id="model-status">LOADING...</span>
+    </div>
+  </div>
+
+  <div class="db-bar">
+    <div class="db-info">
+      <span>DATABASE:</span>
+      <span id="db-count">--</span> SUBJECTS ENROLLED
+    </div>
+    <div class="dropdown">
+      <button class="dropdown-btn" onclick="toggleDropdown(event)">View Enrolled Subjects ▾</button>
+      <div class="dropdown-content" id="subjects-dropdown">
+        <div class="dropdown-empty">Loading subjects...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('register')">🔐 Enroll Subject</button>
+    <button class="tab-btn" onclick="switchTab('recognize')">👁 Authenticate</button>
+  </div>
+
+  <div class="panel active" id="panel-register">
+    <div class="panel-title">Subject Enrollment</div>
+
+    <div class="field">
+      <label>Subject ID / Name</label>
+      <input type="text" id="reg-name" placeholder="e.g. Sayon_Mitra" autocomplete="off"/>
+    </div>
+
+    <div class="field">
+      <label>Walking Video (3–10 seconds)</label>
+      <div class="drop-zone" id="reg-drop">
+        <input type="file" id="reg-file" accept="video/mp4,video/avi,video/mov,video/mkv"/>
+        <div class="drop-icon">🎥</div>
+        <div class="drop-text">
+          <strong>Drop video here</strong> or click to browse<br>
+          MP4 / AVI / MOV / MKV &nbsp;·&nbsp; max 200 MB
+        </div>
+        <div class="drop-accepted">SUBJECT MUST BE WALKING IN VIDEO</div>
+      </div>
+      <div class="file-selected" id="reg-file-info">📎 <span></span></div>
+    </div>
+
+    <div class="progress-wrap" id="reg-progress">
+      <div class="progress-label">
+        <span id="reg-prog-text">Transmitting payload…</span>
+        <span id="reg-prog-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="reg-prog-fill"></div></div>
+      <div class="progress-steps">
+        <div class="step-chip" id="step-upload">UPLOAD</div>
+        <div class="step-chip" id="step-silhouette">SILHOUETTE EXTRACTION</div>
+        <div class="step-chip" id="step-gei">GEI GENERATION</div>
+        <div class="step-chip" id="step-features">FEATURE EXTRACTION</div>
+        <div class="step-chip" id="step-save">SAVE TO DB</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-register" onclick="doRegister()">
+        🔐 Enroll Subject
+      </button>
+    </div>
+    <button class="btn btn-save" id="btn-save" onclick="doSave()">
+      💾 Sync Database to Disk
+    </button>
+
+    <div class="output-box" id="reg-output">🟢 System ready. Upload a walking video to enroll a subject.</div>
+  </div>
+
+  <div class="panel" id="panel-recognize">
+    <div class="panel-title">Biometric Authentication</div>
+
+    <div class="field">
+      <label>Walking Video (3–10 seconds)</label>
+      <div class="drop-zone" id="rec-drop">
+        <input type="file" id="rec-file" accept="video/mp4,video/avi,video/mov,video/mkv"/>
+        <div class="drop-icon">👁</div>
+        <div class="drop-text">
+          <strong>Drop video here</strong> or click to browse<br>
+          MP4 / AVI / MOV / MKV &nbsp;·&nbsp; max 200 MB
+        </div>
+        <div class="drop-accepted">IDENTITY WILL BE MATCHED AGAINST DATABASE</div>
+      </div>
+      <div class="file-selected" id="rec-file-info">📎 <span></span></div>
+    </div>
+
+    <div class="progress-wrap" id="rec-progress">
+      <div class="progress-label">
+        <span id="rec-prog-text">Transmitting payload…</span>
+        <span id="rec-prog-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="rec-prog-fill"></div></div>
+      <div class="progress-steps">
+        <div class="step-chip" id="rstep-upload">UPLOAD</div>
+        <div class="step-chip" id="rstep-silhouette">SILHOUETTE EXTRACTION</div>
+        <div class="step-chip" id="rstep-gei">GEI GENERATION</div>
+        <div class="step-chip" id="rstep-features">FEATURE EXTRACTION</div>
+        <div class="step-chip" id="rstep-match">COSINE MATCHING</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-recognize" onclick="doRecognize()">
+        👁 Authenticate
+      </button>
+    </div>
+
+    <div class="output-box" id="rec-output">🟢 System ready. Upload a walking video to authenticate.</div>
+  </div>
+
+  <div class="footer">
+    CU GAIT BIOMETRIC SYSTEM &nbsp;|&nbsp; POWERED BY GEI + DEEP NEURAL NETWORK &nbsp;|&nbsp; CHANDIGARH UNIVERSITY
+  </div>
+</div>
+
+<script>
+/* ── Dropdown Utility ── */
+function toggleDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('subjects-dropdown').classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+window.onclick = function(event) {
+  if (!event.target.matches('.dropdown-btn')) {
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    for (var i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
+    }
+  }
+}
+
+/* ── Utility ── */
+function setOutput(id, type, html) {
+  const el = document.getElementById(id);
+  el.className = 'output-box ' + type;
+  el.innerHTML = html;
+}
+
+function setButtons(disabled, ...ids) {
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = disabled; });
+}
+
+/* ── File drop zones ── */
+function wireDropZone(dropId, fileInputId, infoId) {
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(fileInputId);
+  const info = document.getElementById(infoId);
+
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      showFileInfo(input, info);
+    }
+  });
+  input.addEventListener('change', () => showFileInfo(input, info));
+}
+
+function showFileInfo(input, infoEl) {
+  if (!input.files.length) { infoEl.style.display='none'; return; }
+  const f = input.files[0];
+  infoEl.style.display = 'block';
+  infoEl.querySelector('span').textContent = `${f.name}  (${(f.size/1024/1024).toFixed(1)} MB)`;
+}
+
+wireDropZone('reg-drop', 'reg-file', 'reg-file-info');
+wireDropZone('rec-drop', 'rec-file', 'rec-file-info');
+
+/* ── Tabs ── */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['register','recognize'][i]===tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+/* ── Status check on load ── */
+async function refreshStatus() {
+  try {
+    const res = await fetch('/api/status');
+    const d = await res.json();
+    document.getElementById('model-status').textContent = d.model_loaded ? 'AI ONLINE' : 'MODEL NOT LOADED';
+    document.getElementById('db-count').textContent = d.enrolled_subjects;
+    
+    // Populate Dropdown List
+    const dd = document.getElementById('subjects-dropdown');
+    if (d.subjects && d.subjects.length > 0) {
+      dd.innerHTML = d.subjects.map(s => `<div class="dropdown-item">${s}</div>`).join('');
+    } else {
+      dd.innerHTML = `<div class="dropdown-empty">— No subjects enrolled —</div>`;
+    }
+  } catch(e) {
+    document.getElementById('model-status').textContent = 'SERVER ERROR';
+    document.getElementById('subjects-dropdown').innerHTML = `<div class="dropdown-empty">Unable to load database</div>`;
+  }
+}
+refreshStatus();
+
+/* ── Upload helper ── */
+async function uploadChunked(file, progressFillId, progressPctId, progressTextId) {
+  const CHUNK = 1024 * 1024; // 1 MB
+  const total = Math.ceil(file.size / CHUNK);
+  let chunk = 0;
+  const fill = document.getElementById(progressFillId);
+  const pct  = document.getElementById(progressPctId);
+  const txt  = document.getElementById(progressTextId);
+
+  while (chunk < total) {
+    const start = chunk * CHUNK;
+    const blob = file.slice(start, start + CHUNK);
+    chunk++;
+    const p = Math.round((chunk / total) * 60); 
+    fill.style.width = p + '%';
+    pct.textContent = p + '%';
+    txt.textContent = `Uploading… chunk ${chunk}/${total}`;
+    await new Promise(r => setTimeout(r, 30)); 
+  }
+}
+
+function setStepsDone(prefix, steps) {
+  steps.forEach(s => {
+    const el = document.getElementById(prefix + s);
+    if(el) el.className = 'step-chip done';
+  });
+}
+function setStepActive(prefix, step) {
+  const el = document.getElementById(prefix + step);
+  if(el) el.className = 'step-chip active';
+}
+
+/* ── Register ── */
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const fileInput = document.getElementById('reg-file');
+  if (!name) { setOutput('reg-output','warning','⚠️ Please enter a Subject ID / Name.'); return; }
+  if (!fileInput.files.length) { setOutput('reg-output','warning','⚠️ Please select a video file.'); return; }
+
+  const file = fileInput.files[0];
+  setButtons(true,'btn-register','btn-save');
+  document.getElementById('reg-progress').style.display = 'block';
+
+  ['step-upload','step-silhouette','step-gei','step-features','step-save']
+    .forEach(id => document.getElementById(id).className = 'step-chip');
+
+  setOutput('reg-output','loading','⏳ Uploading video...');
+  setStepActive('','step-upload');
+  await uploadChunked(file,'reg-prog-fill','reg-prog-pct','reg-prog-text');
+  document.getElementById('step-upload').className = 'step-chip done';
+
+  setOutput('reg-output','loading','🧠 Extracting silhouettes...');
+  setStepActive('','step-silhouette');
+  document.getElementById('reg-prog-fill').style.width = '70%';
+  document.getElementById('reg-prog-pct').textContent = '70%';
+
+  const fd = new FormData();
+  fd.append('video', file);
+  fd.append('subject_name', name);
+
+  try {
+    const res = await fetch('/api/register', { method:'POST', body: fd });
+    const data = await res.json();
+
+    document.getElementById('step-silhouette').className = 'step-chip done';
+    document.getElementById('step-gei').className = 'step-chip done';
+    document.getElementById('step-features').className = 'step-chip done';
+    document.getElementById('reg-prog-fill').style.width = '100%';
+    document.getElementById('reg-prog-pct').textContent = '100%';
+
+    if (data.status === 'success') {
+      document.getElementById('step-save').className = 'step-chip done';
+      setOutput('reg-output','success', `✅ ${data.message}`);
+      refreshStatus(); // Refreshes dropdown data instantly
+    } else {
+      setOutput('reg-output','error', `🚨 ${data.message}`);
+    }
+  } catch(e) {
+    setOutput('reg-output','error', `❌ Network error: ${e.message}`);
+  }
+
+  setButtons(false,'btn-register','btn-save');
+  fileInput.value = '';
+  document.getElementById('reg-file-info').style.display = 'none';
+  setTimeout(() => { document.getElementById('reg-progress').style.display='none'; }, 3000);
+}
+
+/* ── Recognize ── */
+async function doRecognize() {
+  const fileInput = document.getElementById('rec-file');
+  if (!fileInput.files.length) { setOutput('rec-output','warning','⚠️ Please select a video file.'); return; }
+
+  const file = fileInput.files[0];
+  setButtons(true,'btn-recognize');
+  document.getElementById('rec-progress').style.display = 'block';
+
+  ['rstep-upload','rstep-silhouette','rstep-gei','rstep-features','rstep-match']
+    .forEach(id => document.getElementById(id).className = 'step-chip');
+
+  setOutput('rec-output','loading','⏳ Uploading video...');
+  setStepActive('','rstep-upload');
+  await uploadChunked(file,'rec-prog-fill','rec-prog-pct','rec-prog-text');
+  document.getElementById('rstep-upload').className = 'step-chip done';
+
+  setOutput('rec-output','loading','🧠 Generating Gait Energy Image...');
+  setStepActive('','rstep-gei');
+  document.getElementById('rstep-silhouette').className = 'step-chip done';
+  document.getElementById('rec-prog-fill').style.width = '70%';
+  document.getElementById('rec-prog-pct').textContent = '70%';
+
+  const fd = new FormData();
+  fd.append('video', file);
+
+  try {
+    const res = await fetch('/api/recognize', { method:'POST', body: fd });
+    const data = await res.json();
+
+    document.getElementById('rstep-gei').className = 'step-chip done';
+    document.getElementById('rstep-features').className = 'step-chip done';
+    document.getElementById('rec-prog-fill').style.width = '100%';
+    document.getElementById('rec-prog-pct').textContent = '100%';
+
+    if (data.status === 'success') {
+      document.getElementById('rstep-match').className = 'step-chip done';
+      const conf = data.confidence;
+      setOutput('rec-output','success',
+        `✅ ACCESS GRANTED<br>
+         <span class="match-name">${data.match}</span>
+         <div class="conf-bar-wrap">
+           <div class="conf-label"><span>Match Confidence</span><span>${conf}%</span></div>
+           <div class="conf-bar-track"><div class="conf-bar-fill" id="conf-bar" style="width:0%"></div></div>
+         </div>`
+      );
+      setTimeout(() => {
+        const cb = document.getElementById('conf-bar');
+        if(cb) cb.style.width = conf + '%';
+      }, 100);
+    } else {
+      setOutput('rec-output','error', `🚨 ${data.message}`);
+    }
+  } catch(e) {
+    setOutput('rec-output','error', `❌ Network error: ${e.message}`);
+  }
+
+  setButtons(false,'btn-recognize');
+  fileInput.value = '';
+  document.getElementById('rec-file-info').style.display = 'none';
+  setTimeout(() => { document.getElementById('rec-progress').style.display='none'; }, 3000);
+}
+
+/* ── Save DB ── */
+async function doSave() {
+  setButtons(true,'btn-save','btn-register');
+  setOutput('reg-output','loading','⏳ Syncing database to disk...');
+  try {
+    const res = await fetch('/api/save_database', { method:'POST' });
+    const data = await res.json();
+    if(data.status === 'success') setOutput('reg-output','success', `💾 ${data.message}`);
+    else setOutput('reg-output','error', `🚨 ${data.message}`);
+  } catch(e) {
+    setOutput('reg-output','error', `❌ ${e.message}`);
+  }
+  setButtons(false,'btn-save','btn-register');
+}
+</script>
+</body>
+</html>
