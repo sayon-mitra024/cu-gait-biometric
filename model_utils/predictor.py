@@ -8,6 +8,7 @@ import pickle
 import numpy as np
 import cv2
 import warnings
+import traceback
 warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -33,17 +34,29 @@ class GaitPredictor:
             from tensorflow.keras import models as keras_models
 
             print(f"[INFO] Loading model from {self.model_path} ...")
-            base_model = load_model(self.model_path)
+            
+            # Load model layout safely without execution compilation constraints
+            base_model = load_model(self.model_path, compile=False)
 
-            # Extract feature layer — same as Colab
-            self.feature_model = keras_models.Model(
-                inputs=base_model.inputs,
-                outputs=base_model.get_layer('biometric_feature_layer').output
-            )
+            # Try loading named layer; fallback to second-to-last layer if unindexed
+            try:
+                self.feature_model = keras_models.Model(
+                    inputs=base_model.inputs,
+                    outputs=base_model.get_layer('biometric_feature_layer').output
+                )
+                print("[INFO] Successfully hooked into 'biometric_feature_layer'.")
+            except Exception:
+                print("[INFO] Layer name 'biometric_feature_layer' not found. Trying automatic fallback to penultimate layer...")
+                self.feature_model = keras_models.Model(
+                    inputs=base_model.inputs,
+                    outputs=base_model.layers[-2].output
+                )
+
             self.model = base_model
             print("[INFO] Model loaded successfully.")
         except Exception as e:
-            print(f"[ERROR] Model load failed: {e}")
+            print(f"[CRITICAL ERROR] Model load failed: {e}")
+            traceback.print_exc()
 
     # ── Database Loading ─────────────────────────────────────────────────────
     def _load_database(self):
@@ -66,7 +79,7 @@ class GaitPredictor:
             pickle.dump(self.database, f)
         return len(self.database)
 
-    # ── GEI Pipeline (exact copy from Colab) ────────────────────────────────
+    # ── GEI Pipeline ─────────────────────────────────────────────────────────
     def video_to_gei(self, video_path: str, num_frames: int = 60):
         """
         Convert a walking video into a Gait Energy Image (GEI).
